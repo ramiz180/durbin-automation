@@ -124,7 +124,7 @@ Runs a test verifying that the application can log in cleanly using the provided
     {
       "login": {
         "username": "avijit@durbin.live",
-        "password": "abc"
+        "password": "Maco@2023"
       }
     }
     ```
@@ -167,7 +167,7 @@ Performs login and proceeds to automate basic asset creation details.
       -d '{
         "login": {
           "username": "avijit@durbin.live",
-          "password": "abc"
+          "password": "Maco@2023"
         },
         "asset": {
           "assetNumber": "ASSET-999",
