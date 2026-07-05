@@ -1,0 +1,13 @@
+!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite name="ESB Networks Automation Suite" verbose="1">
+    <test name="Form Automation Tests">
+        <classes>
+            <class name="com.durbin.tests.FormAutomationTest" />
+        </classes>
+    </test>
+    
+    <listeners>
+        <listener class-name="com.durbin.automation.base.AnnotationTransformer"/>
+    </listeners>
+</suite>
+

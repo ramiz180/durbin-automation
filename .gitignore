@@ -1,0 +1,10 @@
+/target/
+/test-output/
+/logs/
+.env
+.claude/
+CLAUDE.md
+/downloads/
+# JVM crash logs
+hs_err_pid*.log
+replay_*.log

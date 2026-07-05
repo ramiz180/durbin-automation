@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+        <File name="File" fileName="${sys:user.dir}/logs/automation.log" append="true" immediateFlush="true" bufferedIO="false">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+
+        <Routing name="ExecutionRoutingAppender">
+            <Routes pattern="$${ctx:logFileName:-logs/default.log}">
+                <Route>
+                    <File name="DynamicFile"
+                          fileName="${ctx:logFileName:-logs/default.log}"
+                          append="true"
+                          immediateFlush="true">
+                        <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger - %msg%n"/>
+                    </File>
+                </Route>
+
+                <!-- Fallback route to avoid failures -->
+                <Route key="">
+                    <File name="DefaultFile"
+                          fileName="logs/default.log"
+                          append="true">
+                        <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger - %msg%n"/>
+                    </File>
+                </Route>
+            </Routes>
+            <PurgePolicy type="IdlePurgePolicy" timeToLive="10" timeUnit="minutes"/>
+        </Routing>
+    </Appenders>
+    
+    <Loggers>
+        <Logger name="com.durbin" level="debug" additivity="true"/>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+            <AppenderRef ref="ExecutionRoutingAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
