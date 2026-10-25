@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Create Visit Suite">
+    <test name="Create Visit Test">
+        <classes>
+            <class name="com.durbin.tests.ERP_tests.CreateVisitTest"/>
+        </classes>
+    </test>
+</suite>

@@ -1,6 +1,8 @@
 package com.durbin.automation.base;
 
+import com.durbin.automation.api.TestDataHolder; // NEW
 import com.durbin.automation.utils.ConfigReader;
+import com.fasterxml.jackson.databind.JsonNode; // NEW
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
@@ -24,6 +26,10 @@ public class BaseTest {
         logger.info("----------Initializing Selenium WebDriver------------");
         step("Initializing WebDriver");
 
+        // CHANGED: the URL is decided first, before Chrome opens, so a bad URL cannot
+        // leave a browser running
+        String url = resolveUrl();
+
         boolean isHeadless = Boolean.parseBoolean(
                 com.durbin.automation.utils.EnvReader.get("headless") != null
                         ? com.durbin.automation.utils.EnvReader.get("headless")
@@ -41,10 +47,28 @@ public class BaseTest {
         }
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
-        String url = ConfigReader.getProperty("login.url");
+        // CHANGED: the old line "String url = ConfigReader.getProperty("login.url");"
+        // is removed, url is set above
         logger.info("Navigating to login page: " + url);
         step("Navigating to application");
         driver.get(url);
+    }
+
+    // NEW: uses "url" from the API payload. If the payload has none, uses login.url
+    // from config.properties.
+    private String resolveUrl() {
+        JsonNode data = TestDataHolder.getData();
+        if (data != null && data.hasNonNull("url") && !data.get("url").asText().trim().isEmpty()) {
+            String fromPayload = data.get("url").asText().trim();
+            if (!fromPayload.matches("(?i)^https?://\\S+$")) {
+                step("ERROR: url in the API payload must start with http:// or https:// but was '" + fromPayload + "'");
+                throw new RuntimeException("Invalid url in API payload: '" + fromPayload + "'");
+            }
+            step("Using URL from API payload");
+            return fromPayload;
+        }
+        step("No url in API payload, using login.url from config.properties");
+        return ConfigReader.getProperty("login.url");
     }
 
     @AfterMethod
@@ -73,4 +97,3 @@ public class BaseTest {
         com.durbin.automation.utils.ExecutionLogCollector.log(message);
     }
 }
-

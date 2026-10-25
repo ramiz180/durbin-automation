@@ -291,7 +291,7 @@ public class AutomationService {
         }
     }
 
-        public ApiResponse runCreateOperatorTest() {
+    public ApiResponse runCreateOperatorTest() {
         long start = System.currentTimeMillis();
         ExecutionResultHolder.clear();
         com.durbin.automation.utils.ExecutionLogCollector.start();
@@ -341,7 +341,8 @@ public class AutomationService {
             return response;
         }
     }
-        public ApiResponse runCreateMaintenanceTest() {
+
+    public ApiResponse runCreateMaintenanceTest() {
         long start = System.currentTimeMillis();
         ExecutionResultHolder.clear();
         com.durbin.automation.utils.ExecutionLogCollector.start();
@@ -392,7 +393,7 @@ public class AutomationService {
         }
     }
 
-        public ApiResponse runFillTimesheetTest() {
+    public ApiResponse runFillTimesheetTest() {
         long start = System.currentTimeMillis();
         ExecutionResultHolder.clear();
         com.durbin.automation.utils.ExecutionLogCollector.start();
@@ -441,5 +442,64 @@ public class AutomationService {
             response.setError(buildErrorDetails(e.getMessage()));
             return response;
         }
+    }
+
+    // Shared runner for new suites. Same behaviour as the other run methods, with
+    // the name and xml as inputs.
+    private ApiResponse runSuite(String testName, String suiteXml, String successMessage) {
+        long start = System.currentTimeMillis();
+        ExecutionResultHolder.clear();
+        com.durbin.automation.utils.ExecutionLogCollector.start();
+        try {
+            logger.info("[TEST START] " + testName + " | Started at " + new java.util.Date());
+            TestNG testng = new TestNG();
+            testng.setTestSuites(Collections.singletonList(suiteXml));
+            testng.addListener(new TestExecutionListener());
+            testng.run();
+            long executionTime = System.currentTimeMillis() - start;
+
+            flushAndWait();
+
+            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
+            String failureReason = ExecutionResultHolder.getFailureReason();
+            String message = "PASSED".equals(status) ? successMessage : sanitizeMessage(failureReason);
+
+            if ("FAILED".equals(status)) {
+                logger.error("[TEST FAILED] " + testName + " | Reason: " + message);
+                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + extractCleanMessage(failureReason));
+            } else {
+                logger.info("[TEST PASSED] " + testName + " | Completed in " + executionTime + "ms");
+            }
+            flushAndWait();
+
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
+            if ("FAILED".equalsIgnoreCase(status)) {
+                response.setError(buildErrorDetails(failureReason));
+            }
+            return response;
+
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - start;
+            logger.error("[EXCEPTION] " + testName + " | " + e.getMessage(), e);
+            flushAndWait();
+
+            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + extractCleanMessage(e.getMessage()));
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
+                    null);
+            response.setError(buildErrorDetails(e.getMessage()));
+            return response;
+        }
+    }
+
+    public ApiResponse runErpLoginTest() {
+        return runSuite("ERP Login Test", "src/test/resources/testng-erp-login.xml",
+                "ERP login test executed successfully");
+    }
+
+    public ApiResponse runCreateVisitTest() {
+        return runSuite("Create Visit Test", "src/test/resources/testng-create-visit.xml",
+                "Create Visit test executed successfully");
     }
 }
