@@ -66,7 +66,7 @@ public class AutomationService {
             return "Invalid username or password";
         }
 
-        // fallback â†’ only first line (removes stacktrace)
+        // fallback -> only first line (removes stacktrace)
         return raw.split("\\n")[0];
     }
 
@@ -84,7 +84,7 @@ public class AutomationService {
                     "Verify credentials in API payload");
         }
 
-        // âœ… IMPROVED: Extract WHICH element timed out
+        // Extract WHICH element timed out
         if (lower.contains("expected condition failed") || lower.contains("timeout")) {
             String elementDetail = "unknown element";
 
@@ -137,63 +137,6 @@ public class AutomationService {
     // TestNG is executed synchronously in the same thread.
     // This ensures ThreadLocal data (TestDataHolder) is accessible.
     // Do NOT enable parallel execution without redesign.
-    public ApiResponse runFormAutomation() {
-        long start = System.currentTimeMillis();
-        ExecutionResultHolder.clear();
-        com.durbin.automation.utils.ExecutionLogCollector.start();
-        try {
-            logger.info("[TEST START] Form Automation | Started at " + new java.util.Date());
-            TestNG testng = new TestNG();
-            testng.setTestSuites(Collections.singletonList("src/test/resources/testng.xml"));
-            testng.addListener(new TestExecutionListener());
-            testng.run();
-            long executionTime = System.currentTimeMillis() - start;
-
-            flushAndWait();
-
-            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
-            String failureReason = ExecutionResultHolder.getFailureReason();
-            String message = "PASSED".equals(status) ? "Form automation executed successfully"
-                    : sanitizeMessage(failureReason);
-
-            if ("FAILED".equals(status)) {
-                logger.error("[TEST FAILED] Form Automation | Reason: " + message);
-                String cleanReason = extractCleanMessage(failureReason);
-                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
-            } else {
-                logger.info("[TEST PASSED] Form Automation | Completed in " + executionTime + "ms");
-            }
-            flushAndWait();
-
-            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
-
-            if ("FAILED".equalsIgnoreCase(status)) {
-                response.setError(buildErrorDetails(failureReason));
-            } else {
-                // âœ… Attach Application ID if captured during form submission
-                String capturedAppId = ExecutionResultHolder.getCapturedApplicationId();
-                if (capturedAppId != null) {
-                    response.setApplicationId(capturedAppId);
-                    logger.info("Returning Application ID in response: " + capturedAppId);
-                }
-            }
-            return response;
-
-        } catch (Exception e) {
-            long executionTime = System.currentTimeMillis() - start;
-            logger.error("[EXCEPTION] Form Automation | " + e.getMessage(), e);
-            flushAndWait();
-
-            String cleanException = extractCleanMessage(e.getMessage());
-            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
-            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
-                    null);
-            response.setError(buildErrorDetails(e.getMessage()));
-            return response;
-        }
-    }
 
     public ApiResponse runLoginTest() {
         long start = System.currentTimeMillis();
@@ -246,147 +189,6 @@ public class AutomationService {
         }
     }
 
-    public ApiResponse runHealthCheck() {
-        long start = System.currentTimeMillis();
-        ExecutionResultHolder.clear();
-        com.durbin.automation.utils.ExecutionLogCollector.start();
-        try {
-            logger.info("[TEST START] Health Check | Started at " + new java.util.Date());
-            TestNG testng = new TestNG();
-            testng.setTestSuites(Collections.singletonList("src/test/resources/testng-health.xml"));
-            testng.addListener(new TestExecutionListener());
-            testng.run();
-            long executionTime = System.currentTimeMillis() - start;
-
-            flushAndWait();
-
-            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
-            String failureReason = ExecutionResultHolder.getFailureReason();
-            String message = "PASSED".equals(status) ? "Health check executed successfully"
-                    : sanitizeMessage(failureReason);
-
-            if ("FAILED".equals(status)) {
-                logger.error("[TEST FAILED] Health Check | Reason: " + message);
-                String cleanReason = extractCleanMessage(failureReason);
-                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
-            } else {
-                logger.info("[TEST PASSED] Health Check | Completed in " + executionTime + "ms");
-            }
-            flushAndWait();
-
-            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
-
-            if ("FAILED".equalsIgnoreCase(status)) {
-                response.setError(buildErrorDetails(failureReason));
-            }
-            return response;
-
-        } catch (Exception e) {
-            long executionTime = System.currentTimeMillis() - start;
-            logger.error("[EXCEPTION] Health Check | " + e.getMessage(), e);
-            flushAndWait();
-
-            String cleanException = extractCleanMessage(e.getMessage());
-            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
-            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
-                    null);
-            response.setError(buildErrorDetails(e.getMessage()));
-            return response;
-        }
-    }
-
-    public ApiResponse runDownloadApplicationTest() {
-        long start = System.currentTimeMillis();
-        ExecutionResultHolder.clear();
-        com.durbin.automation.utils.ExecutionLogCollector.start();
-        try {
-            logger.info("[TEST START] Download Application | Started at " + new java.util.Date());
-            TestNG testng = new TestNG();
-            testng.setTestSuites(Collections.singletonList("src/test/resources/testng-download.xml"));
-            testng.addListener(new TestExecutionListener());
-            testng.run();
-            long executionTime = System.currentTimeMillis() - start;
-
-            flushAndWait();
-
-            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
-            String failureReason = ExecutionResultHolder.getFailureReason();
-            String message = "PASSED".equals(status) ? "Download triggered successfully"
-                    : sanitizeMessage(failureReason);
-
-            if ("FAILED".equals(status)) {
-                logger.error("[TEST FAILED] Download Application | Reason: " + message);
-                String cleanReason = extractCleanMessage(failureReason);
-                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
-            } else {
-                logger.info("[TEST PASSED] Download Application | Completed in " + executionTime + "ms");
-            }
-            flushAndWait();
-
-            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
-
-            if ("PASSED".equalsIgnoreCase(status)) {
-                String capturedId = ExecutionResultHolder.getCapturedApplicationId();
-                if (capturedId != null) {
-                    response.setApplicationId(capturedId);
-                }
-                String filePath = ExecutionResultHolder.getDownloadedFilePath();
-                if (filePath != null) {
-                    response.setFilePath(filePath);
-                }
-                String fileBase64 = ExecutionResultHolder.getDownloadedFileBase64();
-                if (fileBase64 != null) {
-                    try {
-                        String[] encrypted = com.durbin.automation.utils.EncryptionUtils.encrypt(fileBase64);
-                        response.setFileBase64(encrypted[0]);
-                        response.setFileContentType("application/pdf");
-                        response.setEncryptionIv(encrypted[1]);
-                    } catch (Exception e) {
-                        logger.error("Failed to encrypt PDF content", e);
-                        com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: Failed to encrypt PDF document");
-
-                        List<String> encryptionLogs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-                        ApiResponse errorResponse = new ApiResponse(
-                "FAILED",
-                "Failed to encrypt PDF document",
-                executionTime,
-                encryptionLogs,
-                null);
-
-    errorResponse.setApplicationId(response.getApplicationId());
-    errorResponse.setFilePath(response.getFilePath());
-    errorResponse.setError(new ErrorDetails(
-            "ENCRYPTION_FAILED",
-            "Failed to encrypt PDF document",
-            "Verify DOCUMENT_ENCRYPTION_KEY configuration"));
-
-    return errorResponse;
-                    }
-                }
-            } else {
-                response.setError(buildErrorDetails(failureReason));
-            }
-
-            return response;
-
-        } catch (Exception e) {
-            long executionTime = System.currentTimeMillis() - start;
-            logger.error("[EXCEPTION] Download Application | " + e.getMessage(), e);
-            flushAndWait();
-
-            String cleanException = extractCleanMessage(e.getMessage());
-            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
-            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
-            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
-                    null);
-            response.setError(buildErrorDetails(e.getMessage()));
-            return response;
-        }
-    }
-
     public ApiResponse runCreateAssetTest() {
         long start = System.currentTimeMillis();
         ExecutionResultHolder.clear();
@@ -426,6 +228,209 @@ public class AutomationService {
         } catch (Exception e) {
             long executionTime = System.currentTimeMillis() - start;
             logger.error("[EXCEPTION] Create Asset Test | " + e.getMessage(), e);
+            flushAndWait();
+
+            String cleanException = extractCleanMessage(e.getMessage());
+            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
+                    null);
+            response.setError(buildErrorDetails(e.getMessage()));
+            return response;
+        }
+    }
+
+    public ApiResponse runCreateLeaseTest() {
+        long start = System.currentTimeMillis();
+        ExecutionResultHolder.clear();
+        com.durbin.automation.utils.ExecutionLogCollector.start();
+        try {
+            logger.info("[TEST START] Create Lease Test | Started at " + new java.util.Date());
+            TestNG testng = new TestNG();
+            testng.setTestSuites(Collections.singletonList("src/test/resources/testng-create-lease.xml"));
+            testng.addListener(new TestExecutionListener());
+            testng.run();
+            long executionTime = System.currentTimeMillis() - start;
+
+            flushAndWait();
+
+            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
+            String failureReason = ExecutionResultHolder.getFailureReason();
+            String message = "PASSED".equals(status) ? "Create Lease test executed successfully"
+                    : sanitizeMessage(failureReason);
+
+            if ("FAILED".equals(status)) {
+                logger.error("[TEST FAILED] Create Lease Test | Reason: " + message);
+                String cleanReason = extractCleanMessage(failureReason);
+                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
+            } else {
+                logger.info("[TEST PASSED] Create Lease Test | Completed in " + executionTime + "ms");
+            }
+            flushAndWait();
+
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
+
+            if ("FAILED".equalsIgnoreCase(status)) {
+                response.setError(buildErrorDetails(failureReason));
+            }
+            return response;
+
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - start;
+            logger.error("[EXCEPTION] Create Lease Test | " + e.getMessage(), e);
+            flushAndWait();
+
+            String cleanException = extractCleanMessage(e.getMessage());
+            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
+                    null);
+            response.setError(buildErrorDetails(e.getMessage()));
+            return response;
+        }
+    }
+
+        public ApiResponse runCreateOperatorTest() {
+        long start = System.currentTimeMillis();
+        ExecutionResultHolder.clear();
+        com.durbin.automation.utils.ExecutionLogCollector.start();
+        try {
+            logger.info("[TEST START] Create Operator Test | Started at " + new java.util.Date());
+            TestNG testng = new TestNG();
+            testng.setTestSuites(Collections.singletonList("src/test/resources/testng-create-operator.xml"));
+            testng.addListener(new TestExecutionListener());
+            testng.run();
+            long executionTime = System.currentTimeMillis() - start;
+
+            flushAndWait();
+
+            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
+            String failureReason = ExecutionResultHolder.getFailureReason();
+            String message = "PASSED".equals(status) ? "Create Operator test executed successfully"
+                    : sanitizeMessage(failureReason);
+
+            if ("FAILED".equals(status)) {
+                logger.error("[TEST FAILED] Create Operator Test | Reason: " + message);
+                String cleanReason = extractCleanMessage(failureReason);
+                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
+            } else {
+                logger.info("[TEST PASSED] Create Operator Test | Completed in " + executionTime + "ms");
+            }
+            flushAndWait();
+
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
+
+            if ("FAILED".equalsIgnoreCase(status)) {
+                response.setError(buildErrorDetails(failureReason));
+            }
+            return response;
+
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - start;
+            logger.error("[EXCEPTION] Create Operator Test | " + e.getMessage(), e);
+            flushAndWait();
+
+            String cleanException = extractCleanMessage(e.getMessage());
+            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
+                    null);
+            response.setError(buildErrorDetails(e.getMessage()));
+            return response;
+        }
+    }
+        public ApiResponse runCreateMaintenanceTest() {
+        long start = System.currentTimeMillis();
+        ExecutionResultHolder.clear();
+        com.durbin.automation.utils.ExecutionLogCollector.start();
+        try {
+            logger.info("[TEST START] Create Maintenance Test | Started at " + new java.util.Date());
+            TestNG testng = new TestNG();
+            testng.setTestSuites(Collections.singletonList("src/test/resources/testng-create-maintenance.xml"));
+            testng.addListener(new TestExecutionListener());
+            testng.run();
+            long executionTime = System.currentTimeMillis() - start;
+
+            flushAndWait();
+
+            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
+            String failureReason = ExecutionResultHolder.getFailureReason();
+            String message = "PASSED".equals(status) ? "Create Maintenance test executed successfully"
+                    : sanitizeMessage(failureReason);
+
+            if ("FAILED".equals(status)) {
+                logger.error("[TEST FAILED] Create Maintenance Test | Reason: " + message);
+                String cleanReason = extractCleanMessage(failureReason);
+                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
+            } else {
+                logger.info("[TEST PASSED] Create Maintenance Test | Completed in " + executionTime + "ms");
+            }
+            flushAndWait();
+
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
+
+            if ("FAILED".equalsIgnoreCase(status)) {
+                response.setError(buildErrorDetails(failureReason));
+            }
+            return response;
+
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - start;
+            logger.error("[EXCEPTION] Create Maintenance Test | " + e.getMessage(), e);
+            flushAndWait();
+
+            String cleanException = extractCleanMessage(e.getMessage());
+            com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanException);
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse("FAILED", sanitizeMessage(e.getMessage()), executionTime, logs,
+                    null);
+            response.setError(buildErrorDetails(e.getMessage()));
+            return response;
+        }
+    }
+
+        public ApiResponse runFillTimesheetTest() {
+        long start = System.currentTimeMillis();
+        ExecutionResultHolder.clear();
+        com.durbin.automation.utils.ExecutionLogCollector.start();
+        try {
+            logger.info("[TEST START] Fill Timesheet Test | Started at " + new java.util.Date());
+            TestNG testng = new TestNG();
+            testng.setTestSuites(Collections.singletonList("src/test/resources/testng-fill-timesheet.xml"));
+            testng.addListener(new TestExecutionListener());
+            testng.run();
+            long executionTime = System.currentTimeMillis() - start;
+
+            flushAndWait();
+
+            String status = (testng.hasFailure() || testng.hasSkip()) ? "FAILED" : "PASSED";
+            String failureReason = ExecutionResultHolder.getFailureReason();
+            String message = "PASSED".equals(status) ? "Fill Timesheet test executed successfully"
+                    : sanitizeMessage(failureReason);
+
+            if ("FAILED".equals(status)) {
+                logger.error("[TEST FAILED] Fill Timesheet Test | Reason: " + message);
+                String cleanReason = extractCleanMessage(failureReason);
+                com.durbin.automation.utils.ExecutionLogCollector.log("ERROR: " + cleanReason);
+            } else {
+                logger.info("[TEST PASSED] Fill Timesheet Test | Completed in " + executionTime + "ms");
+            }
+            flushAndWait();
+
+            List<String> logs = com.durbin.automation.utils.ExecutionLogCollector.getLogLines();
+            ApiResponse response = new ApiResponse(status, message, executionTime, logs, null);
+
+            if ("FAILED".equalsIgnoreCase(status)) {
+                response.setError(buildErrorDetails(failureReason));
+            }
+            return response;
+
+        } catch (Exception e) {
+            long executionTime = System.currentTimeMillis() - start;
+            logger.error("[EXCEPTION] Fill Timesheet Test | " + e.getMessage(), e);
             flushAndWait();
 
             String cleanException = extractCleanMessage(e.getMessage());

@@ -1,115 +1,135 @@
 package com.durbin.tests;
 
+import org.testng.annotations.Test;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.durbin.automation.api.TestDataHolder;
 import com.durbin.automation.base.BaseTest;
 import com.durbin.automation.pages.CreateLeasePage;
-import com.durbin.automation.pages.LeasePage;
-import com.durbin.automation.utils.ExcelUtils;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import java.util.Map;
+import com.durbin.automation.pages.LoginPage;
 
 public class CreateLeaseTest extends BaseTest {
 
-    private CreateLeasePage createLeasePage;
-    private LeasesPage leasesPage;
-    private static final String TEST_DATA_FILE = "src/test/resources/testdata.xlsx";
-
-    @BeforeClass
-    public void setUpPages() {
-        createLeasePage = new CreateLeasePage(driver);
-        leasesPage = new LeasesPage(driver);
-    }
-
-    @DataProvider(name = "leaseData")
-    public Object[][] getLeaseData() {
-        return ExcelUtils.getTestData(TEST_DATA_FILE, "CreateLease");
-    }
-
-    @Test(dataProvider = "leaseData")
-    public void createLeaseTest(Map<String, String> testData) {
-        String methodName = Thread.currentThread().getStackTrace()[1].getMethodName();
-        log.info("--- Starting Test: " + methodName + " ---");
-
-        try {
-            // Navigate to Leases page
-            leasesPage.navigateToLeases();
-
-            // Verify Leases page title
-            Assert.assertTrue(driver.getTitle().contains("Leases"), "Leases page should open");
-            log.info("Leases page opened successfully");
-
-            // Click "Create New Lease" button
-            leasesPage.clickCreateNewLease();
-
-            // Verify Create Lease page is displayed
-            Assert.assertTrue(createLeasePage.isCreateLeasePageDisplayed(),
-                    "Create Lease page should display");
-            log.info("Create Lease page opened successfully");
-
-            // Fill Create Lease form
-            log.info("Filling Create Lease form with test data");
-
-            createLeasePage.fillBasicInformation(
-                    testData.get("EffectiveDate"),
-                    testData.get("RenewalTerm"),
-                    testData.get("RentIncreaseDate"),
-                    testData.get("RenewalDate"),
-                    testData.get("LeaseType"),
-                    testData.get("FulfillmentMethod"),
-                    testData.get("SpaceDescription"),
-                    testData.get("AdditionalRent"),
-                    testData.get("RenewalSpaceDescription"),
-                    testData.get("LeaseCommencementDate"),
-                    testData.get("LeaseExpiryDate"),
-                    testData.get("BaseRent"),
-                    testData.get("RenewalRent"));
-
-            log.info("Basic information filled");
-
-            createLeasePage.fillDimensions(
-                    testData.get("DimensionsWidth"),
-                    testData.get("DimensionsDepth"),
-                    testData.get("DimensionsTotalArea"),
-                    testData.get("RenewalDimensionsWidth"),
-                    testData.get("RenewalDimensionsDepth"),
-                    testData.get("RenewalDimensionsTotalArea"));
-
-            log.info("Dimensions filled");
-
-            createLeasePage.fillRentalRate(
-                    testData.get("RentalRateRate"),
-                    testData.get("RenewalRentalRateRate"),
-                    testData.get("RentalRateType"),
-                    testData.get("RenewalRentalRateType"),
-                    testData.get("RentalRatePer"),
-                    testData.get("RenewalRentalRatePer"));
-
-            log.info("Rental rate filled");
-
-            // Click Save button
-            log.info("Saving the lease");
-            createLeasePage.clickSave();
-
-            // Verify lease was created successfully
-            boolean leaseCreated = createLeasePage.isLeaseCreated(
-                    testData.get("ExpectedLeaseId"),
-                    testData.get("ExpectedLeaseName"));
-
-            if (leaseCreated) {
-                log.info("SUCCESS: Lease created successfully!");
-                log.info("Lease ID: " + testData.get("ExpectedLeaseId"));
-                log.info("Lease Name: " + testData.get("ExpectedLeaseName"));
-            } else {
-                log.error("FAILURE: Lease creation failed");
-                Assert.fail("Lease creation failed - Lease ID or Name not found");
-            }
-
-        } catch (Exception e) {
-            log.error("Exception in createLeaseTest: " + e.getMessage(), e);
-            throw e;
+    // Returns the value, or null if the key is missing or empty
+    private static String opt(JsonNode node, String key) {
+        JsonNode v = node.get(key);
+        if (v == null || v.isNull() || v.asText().trim().isEmpty()) {
+            return null;
         }
+        return v.asText().trim();
+    }
+
+    @Test
+    public void testCreateLease() {
+        step("-------Starting Lease Creation Test----------");
+
+        JsonNode root = TestDataHolder.getData();
+        if (root == null) {
+            throw new RuntimeException("API test data is required. No fallback allowed.");
+        }
+        step("Using API-driven test data");
+
+        // Login data
+        if (!root.has("login")) {
+            throw new RuntimeException("login data is required in API payload");
+        }
+        JsonNode login = root.get("login");
+        String user = login.get("username").asText();
+        String pass = login.get("password").asText();
+
+        // Lease data
+        if (!root.has("lease")) {
+            throw new RuntimeException("lease data is required in API payload");
+        }
+        JsonNode lease = root.get("lease");
+        for (String key : new String[] { "customerName", "customerPoNo", "salesPerson", "leaseType" }) {
+            if (!lease.has(key) || lease.get(key).asText().trim().isEmpty()) {
+                throw new RuntimeException(key + " is required in the lease payload");
+            }
+        }
+        String customerName = lease.get("customerName").asText().trim();
+        String customerPoNo = lease.get("customerPoNo").asText().trim();
+        String salesPerson = lease.get("salesPerson").asText().trim();
+        String leaseTypeInput = lease.get("leaseType").asText().trim();
+
+        String leaseType;
+        if (leaseTypeInput.equalsIgnoreCase("Dry")) {
+            leaseType = "Dry";
+        } else if (leaseTypeInput.equalsIgnoreCase("Wet")) {
+            leaseType = "Wet";
+        } else {
+            throw new RuntimeException("leaseType must be 'Dry' or 'Wet' but was '" + leaseTypeInput + "'");
+        }
+
+        // Machine data
+        if (!root.has("machine")) {
+            throw new RuntimeException("machine data is required in API payload");
+        }
+        JsonNode machine = root.get("machine");
+        String assetNo = opt(machine, "assetNo");
+        if (assetNo == null) {
+            throw new RuntimeException("assetNo is required in the machine payload");
+        }
+        String operatorNo = opt(machine, "operatorNo");
+        String operatorName = opt(machine, "operatorName");
+        if (operatorName != null && operatorNo == null) {
+            throw new RuntimeException("operatorNo is required when operatorName is given");
+        }
+
+        LoginPage loginPage = new LoginPage(driver);
+        CreateLeasePage leasePage = new CreateLeasePage(driver);
+
+        step("Login------------------------");
+        loginPage.login(user, pass);
+        step("----------Login Completed----------");
+
+        leasePage.openLeasesMenu();
+        leasePage.openLeaseSubMenu();
+        leasePage.clickCreateButton();
+        step("Opened Create Lease page----->>>>>>");
+
+        leasePage.enterCustomerPoNo(customerPoNo);
+        leasePage.selectSalesPerson(salesPerson);
+        leasePage.selectLeaseType(leaseType);
+        leasePage.selectCustomerName(customerName);
+        step("Lease basic details filled----->>>>>>");
+
+        // Machine section
+        leasePage.clickAddMachine();
+        leasePage.selectAsset(assetNo);
+
+        if (operatorNo != null) {
+            leasePage.enterOperatorNo(operatorNo);
+            if (operatorName != null) {
+                leasePage.selectOperatorName(operatorName);
+            }
+        }
+
+        // Rental Start and Rental End: added in the next step
+
+        String location = opt(machine, "location");
+        if (location != null) {
+            leasePage.selectMachineLocation(location);
+        }
+        String monthlyRent = opt(machine, "monthlyRent");
+        if (monthlyRent != null) {
+            leasePage.enterMonthlyRent(monthlyRent);
+        }
+        String shiftsPerDay = opt(machine, "shiftsPerDay");
+        if (shiftsPerDay != null) {
+            leasePage.enterShiftsPerDay(shiftsPerDay);
+        }
+        String nominalHrs = opt(machine, "nominalHrsPerShift");
+        if (nominalHrs != null) {
+            leasePage.enterNominalHrs(nominalHrs);
+        }
+        String workingDays = opt(machine, "workingDaysPerMonth");
+        if (workingDays != null) {
+            leasePage.enterWorkingDays(workingDays);
+        }
+        String contractValue = opt(machine, "contractValue");
+        if (contractValue != null) {
+            leasePage.enterContractValue(contractValue);
+        }
+        step("Machine details filled----->>>>>>");
     }
 }

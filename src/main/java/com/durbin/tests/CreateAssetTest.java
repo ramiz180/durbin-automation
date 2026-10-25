@@ -47,6 +47,7 @@ public class CreateAssetTest extends BaseTest {
         String capacity = asset.has("capacity") ? asset.get("capacity").asText() : "100";
         String year = asset.has("year") ? asset.get("year").asText() : "2022";
         String location = asset.has("location") ? asset.get("location").asText() : "Location";
+        String category = asset.has("category") ? asset.get("category").asText() : "Telescopic Boom";
 
         LoginPage loginPage = new LoginPage(driver);
         AssetPage assetPage = new AssetPage(driver);
@@ -66,6 +67,7 @@ public class CreateAssetTest extends BaseTest {
         assetPage.enterSerialNumber(serial);
         assetPage.enterPurchasedFrom(purchasedFrom);
         assetPage.enterDeviceNumber(deviceNumber);
+        assetPage.clickCategoryDropdown(category);
         assetPage.enterHeight(height);
         // assetPage.enterCapacity(capacity);
 

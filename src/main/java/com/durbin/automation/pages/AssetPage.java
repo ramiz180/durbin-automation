@@ -1,14 +1,7 @@
 package com.durbin.automation.pages;
 
-import java.util.List;
-
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import com.durbin.automation.base.BasePage;
 
@@ -18,300 +11,135 @@ public class AssetPage extends BasePage {
         super(driver);
     }
 
-    // Menu locators
-    @FindBy(xpath = "(//span[.='Assets'])[1]")
-    private WebElement assetsMenu;
+    // ===================== Menu =====================
+    private final By assetsMenu = By.xpath("(//span[.='Assets'])[1]");
+    private final By createAssetButton = By.xpath("//button[normalize-space()='Create']");
 
-    @FindBy(xpath = "//button[normalize-space()='Create']")
-    private WebElement createAssetButton;
+    // ===================== Asset Details =====================
+    private final By assetNumberInput = By.xpath("//input[@placeholder='Asset Number']");
+    private final By makeInput = By.xpath("//input[@placeholder='Make']");
+    private final By modelInput = By.xpath("//input[@placeholder='Model Number']");
+    private final By serialNumberInput = By.xpath("//input[@placeholder='e.g. GS46D-12345']");
+    private final By purchasedFromInput = By.xpath("//input[@placeholder='e.g. TATA']");
+    private final By deviceNumberInput = By.xpath("//input[@placeholder='Enter Valid Device Number']");
+    private final By categorySelect = By.xpath("//*[@placeholder='Select Category']");
+    private final By yearDropdown = By.xpath("//input[@placeholder='Select Year']");
+    private final By locationInput = By.xpath("//input[@placeholder='Search for a location...']");
+    private final By heightInput = By.xpath("//input[@placeholder='e.g. 10 ft']");
+    private final By capacityInput = By.xpath("//input[@placeholder='e.g. 80 kg.']");
 
-    // Asset Details
-    @FindBy(xpath = "//input[@placeholder='Asset Number']")
-    private WebElement assetNumberInput;
+    // ===================== Buttons =====================
+    private final By backButton = By.xpath("//button[normalize-space()='Back']");
+    private final By saveAndNextButton = By.xpath("//button[normalize-space()='Save & Next']");
+    private final By createNewAssetButton = By.xpath("//button[normalize-space()='Create New Asset']");
 
-    @FindBy(xpath = "//input[@placeholder='Make']")
-    private WebElement makeInput;
+    // ===================== Configuration Details =====================
+    private final By usedNewDropdown = formDropdown("Used / New");
+    private final By ansiCeDropdown = formDropdown("ANSI / CE");
+    private final By driveTrainDropdown = formDropdown("Drive Type");
+    private final By wheelDriveTypeDropdown = formDropdown("Wheel Drive Type");
+    private final By tiresDropdown = formDropdown("Tires");
+    private final By engineSerialInput = By.xpath(
+            "//div[@data-slot='form-item'][.//label[contains(normalize-space(),'Engine Serial No')]]//input");
+    private final By accessoriesInput = By.xpath(
+            "//div[@data-slot='form-item'][.//label[contains(normalize-space(),'Accessories')]]//input");
 
-    @FindBy(xpath = "//input[@placeholder='Model Number']")
-    private WebElement modelInput;
+    // ===================== Commercial Details =====================
+    private final By poNumberInput = By.xpath("//input[@placeholder='PO Number']");
+    private final By gstAmountInput = By.xpath("//input[@placeholder='e.g. 100000']");
+    private final By exRateInput = By.xpath("//label[contains(normalize-space(),'Ex rate as per BOE')]/following::input[1]");
+    private final By clearingChargesInput = By.xpath("//label[contains(normalize-space(),'Clearing Charges')]/following::input[1]");
+    private final By chaChargesInput = By.xpath("//label[contains(normalize-space(),'CHA Charges')]/following::input[1]");
+    private final By transportationChargesInput = By.xpath("//label[contains(normalize-space(),'Transportation charges upto yard')]/following::input[1]");
+    private final By dispatchPortDropdown = formDropdown("Dispatch Port");
+    private final By clearancePortDropdown = formDropdown("Clearance Port");
+    private final By periodOfInsuranceInput = By.xpath("//input[@placeholder='e.g. 2']");
+    private final By totalLandedCostInput = By.xpath("//label[normalize-space()='Total Landed Cost (₹)']/following::input[1]");
+    private final By totalLandedCostIncludingGSTInput = By.xpath("//label[contains(normalize-space(),'including GST')]/following::input[1]");
 
-    @FindBy(xpath = "//input[@placeholder='e.g. GS46D-12345']")
-    private WebElement serialNumberInput;
+    // ===================== Helpers =====================
 
-    @FindBy(xpath = "//input[@placeholder='e.g. TATA']")
-    private WebElement purchasedFromInput;
+    // Builds the locator for a dropdown button inside a labelled form item
+    private static By formDropdown(String label) {
+        return By.xpath("//div[@data-slot='form-item'][.//label[normalize-space()='" + label + "']]//button");
+    }
 
-    @FindBy(xpath = "//input[@placeholder='Enter Valid Device Number']")
-    private WebElement deviceNumberInput;
+    private void selectDropdownOption(By dropdown, String value, String dropdownName) {
+        click(dropdown, dropdownName + " dropdown");
+        click(By.xpath("//div[@role='option' and normalize-space()='" + value + "']"),
+                "Option '" + value + "' in " + dropdownName);
+    }
 
-    // Dropdowns (Often require clicking the element, then selecting an option)
-    @FindBy(xpath = "//input[@placeholder='Select Year']")
-    private WebElement yearDropdown;
-
-    @FindBy(xpath = "//input[@placeholder='Search for a location...']")
-    private WebElement locationInput;
-
-    // Optional Fields
-    @FindBy(xpath = "//input[@placeholder='e.g. 10 ft']")
-    private WebElement heightInput;
-
-    @FindBy(xpath = "//input[@placeholder='e.g. 80 kg.']")
-    private WebElement capacityInput;
-
-    // Buttons
-    @FindBy(xpath = "//button[normalize-space()='Back']")
-    private WebElement backButton;
-
-    @FindBy(xpath = "//button[normalize-space()='Save & Next']")
-    private WebElement saveAndNextButton;
+    // ===================== Navigation =====================
 
     public void goToAssetPage() {
-        clickWhenVisible(assetsMenu);
+        click(assetsMenu, "Assets Menu");
     }
 
     public void clickCreateAssetButton() {
-        clickWhenVisible(createAssetButton);
-    }
-
-    public void enterAssetNumber(String assetNumber) {
-        enterText(assetNumberInput, assetNumber);
-    }
-
-    public void enterMake(String make) {
-        enterText(makeInput, make);
-    }
-
-    public void enterModelNumber(String modelNumber) {
-        enterText(modelInput, modelNumber);
-    }
-
-    public void enterSerialNumber(String serialNumber) {
-        enterText(serialNumberInput, serialNumber);
-    }
-
-    public void enterPurchasedFrom(String purchasedFrom) {
-        enterText(purchasedFromInput, purchasedFrom);
-    }
-
-    public void enterDeviceNumber(String deviceNumber) {
-        enterText(deviceNumberInput, deviceNumber);
-    }
-
-    public void enterHeight(String height) {
-        enterText(heightInput, height);
-    }
-
-    public void enterCapacity(String capacity) {
-        enterText(capacityInput, capacity);
-    }
-
-    public void selectYear(String year) {
-        yearDropdown.click();
-        yearDropdown.sendKeys(year);
-        yearDropdown.sendKeys(Keys.ENTER);
-    }
-
-    public void selectLocation(String location) {
-        locationInput.click();
-        locationInput.sendKeys(location);
-        locationInput.sendKeys(Keys.ENTER);
+        click(createAssetButton, "Create Asset Button");
     }
 
     public void clickBackButton() {
-        clickWhenVisible(backButton);
+        click(backButton, "Back Button");
     }
 
     public void clickSaveAndNextButton() {
-        clickWhenVisible(saveAndNextButton);
+        click(saveAndNextButton, "Save & Next Button");
     }
-
-    // ---Configuration details ---
-
-    // Used / New Dropdown
-    // Used / New
-    // ===================== Configuration Details =====================
-
-    // Used / New
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='Used / New']]//button")
-    private WebElement usedNewDropdown;
-
-    // ANSI / CE
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='ANSI / CE']]//button")
-    private WebElement ansiCeDropdown;
-
-    // Drive Train
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='Drive Train']]//button")
-    private WebElement driveTrainDropdown;
-
-    // Wheel Drive Type
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='Wheel Drive Type']]//button")
-    private WebElement wheelDriveTypeDropdown;
-
-    // Tires
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='Tires']]//button")
-    private WebElement tiresDropdown;
-
-    // Engine Serial No
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[contains(normalize-space(),'Engine Serial No')]]//input")
-    private WebElement engineSerialInput;
-
-    // Accessories
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[contains(normalize-space(),'Accessories')]]//input")
-    private WebElement accessoriesInput;
-
-    // ===================== Common Dropdown Method =====================
-
-    private void selectDropdownOption(WebElement dropdown, String value) {
-
-        clickWhenClickable(dropdown);
-
-        WebElement option = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.xpath("//div[@role='option' and normalize-space()='" + value + "']")));
-
-        option.click();
-    }
-
-    // ===================== Configuration Methods =====================
-
-    public void selectUsedNew(String usedNew) {
-        selectDropdownOption(usedNewDropdown, usedNew);
-    }
-
-    public void selectAnsiCe(String ansiCe) {
-        selectDropdownOption(ansiCeDropdown, ansiCe);
-    }
-
-    public void selectDriveTrain(String driveTrain) {
-        selectDropdownOption(driveTrainDropdown, driveTrain);
-    }
-
-    public void selectWheelDriveType(String wheelDriveType) {
-        selectDropdownOption(wheelDriveTypeDropdown, wheelDriveType);
-    }
-
-    public void selectTires(String tires) {
-        selectDropdownOption(tiresDropdown, tires);
-    }
-
-    public void enterEngineSerial(String engineSerial) {
-        enterText(engineSerialInput, engineSerial);
-    }
-
-    public void enterAccessories(String accessories) {
-        enterText(accessoriesInput, accessories);
-    }
-
-    @FindBy(xpath = "//button[normalize-space()='Save & Next']")
-    private WebElement nextButton;
 
     public void clickNextButton() {
-        clickWhenVisible(nextButton);
-    }
-
-    // ===================== Commercial Details =====================
-
-    // PO Number
-    @FindBy(xpath = "//input[@placeholder='PO Number']")
-    private WebElement poNumberInput;
-
-    // Purchase Order Date
-    @FindBy(xpath = "//button[contains(@class,'justify-start')][.//span[contains(text(),'Pick a date')] or contains(.,'Pick a date')]")
-    private WebElement purchaseOrderDate;
-
-    // GST Amount
-    @FindBy(xpath = "//input[@placeholder='e.g. 100000']")
-    private WebElement gstAmountInput;
-
-    // Ex rate as per BOE
-    @FindBy(xpath = "//label[contains(normalize-space(),'Ex rate as per BOE')]/following::input[1]")
-    private WebElement exRateInput;
-
-    // Clearing Charges
-    @FindBy(xpath = "//label[contains(normalize-space(),'Clearing Charges')]/following::input[1]")
-    private WebElement clearingChargesInput;
-
-    // CHA Charges
-    @FindBy(xpath = "//label[contains(normalize-space(),'CHA Charges')]/following::input[1]")
-    private WebElement chaChargesInput;
-
-    // Transportation Charges upto yard
-    @FindBy(xpath = "//label[contains(normalize-space(),'Transportation charges upto yard')]/following::input[1]")
-    private WebElement transportationChargesInput;
-
-    // Dispatch Port
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='Dispatch Port']]//button")
-    private WebElement dispatchPortDropdown;
-
-    // Clearance Port
-    @FindBy(xpath = "//div[@data-slot='form-item'][.//label[normalize-space()='Clearance Port']]//button")
-    private WebElement clearancePortDropdown;
-
-    // Period of Insurance
-    @FindBy(xpath = "//input[@placeholder='Period of Insurance']")
-    private WebElement periodOfInsuranceInput;
-
-    // Renewal Date
-    @FindBy(xpath = "//label[normalize-space()=\"Renewal's Date\"]/following::button[1]")
-    private WebElement renewalDateButton;
-
-    // Total Landed Cost
-    @FindBy(xpath = "//label[normalize-space()='Total Landed Cost (₹)']/following::input[1]")
-    private WebElement totalLandedCostInput;
-
-    // Total Landed Cost (including GST)
-    @FindBy(xpath = "//label[contains(normalize-space(),'including GST')]/following::input[1]")
-    private WebElement totalLandedCostIncludingGSTInput;
-
-    // Create New Asset
-    @FindBy(xpath = "//button[normalize-space()='Create New Asset']")
-    private WebElement createNewAssetButton;
-
-    public void enterPONumber(String value) {
-        enterText(poNumberInput, value);
-    }
-
-    public void enterGSTAmount(String value) {
-        enterText(gstAmountInput, value);
-    }
-
-    public void enterExRate(String value) {
-        enterText(exRateInput, value);
-    }
-
-    public void enterClearingCharges(String value) {
-        enterText(clearingChargesInput, value);
-    }
-
-    public void enterCHACharges(String value) {
-        enterText(chaChargesInput, value);
-    }
-
-    public void enterTransportationCharges(String value) {
-        enterText(transportationChargesInput, value);
-    }
-
-    public void selectDispatchPort(String value) {
-        selectDropdownOption(dispatchPortDropdown, value);
-    }
-
-    public void selectClearancePort(String value) {
-        selectDropdownOption(clearancePortDropdown, value);
-    }
-
-    public void enterPeriodOfInsurance(String value) {
-        enterText(periodOfInsuranceInput, value);
-    }
-
-    public void enterTotalLandedCost(String value) {
-        enterText(totalLandedCostInput, value);
-    }
-
-    public void enterTotalLandedCostIncludingGST(String value) {
-        enterText(totalLandedCostIncludingGSTInput, value);
+        click(saveAndNextButton, "Next Button");
     }
 
     public void clickCreateNewAsset() {
-        clickWhenClickable(createNewAssetButton);
+        click(createNewAssetButton, "Create New Asset Button");
     }
+
+    // ===================== Asset Details =====================
+
+    public void enterAssetNumber(String v) { sendKeys(assetNumberInput, v, "Asset Number Field"); }
+    public void enterMake(String v) { sendKeys(makeInput, v, "Make Field"); }
+    public void enterModelNumber(String v) { sendKeys(modelInput, v, "Model Number Field"); }
+    public void enterSerialNumber(String v) { sendKeys(serialNumberInput, v, "Serial Number Field"); }
+    public void enterPurchasedFrom(String v) { sendKeys(purchasedFromInput, v, "Purchased From Field"); }
+    public void enterDeviceNumber(String v) { sendKeys(deviceNumberInput, v, "Device Number Field"); }
+    public void enterHeight(String v) { sendKeys(heightInput, v, "Height Field"); }
+    public void enterCapacity(String v) { sendKeys(capacityInput, v, "Capacity Field"); }
+
+    public void clickCategoryDropdown(String category) {
+    selectDropdownOption(categorySelect, category, "Category");
+}
+
+    public void selectYear(String year) {
+        typeAndEnter(yearDropdown, year, "Year Field");
+    }
+
+    public void selectLocation(String location) {
+        typeAndEnter(locationInput, location, "Location Field");
+    }
+
+    // ===================== Configuration =====================
+
+    public void selectUsedNew(String v) { selectDropdownOption(usedNewDropdown, v, "Used / New"); }
+    public void selectAnsiCe(String v) { selectDropdownOption(ansiCeDropdown, v, "ANSI / CE"); }
+    public void selectDriveTrain(String v) { selectDropdownOption(driveTrainDropdown, v, "Drive Train"); }
+    public void selectWheelDriveType(String v) { selectDropdownOption(wheelDriveTypeDropdown, v, "Wheel Drive Type"); }
+    public void selectTires(String v) { selectDropdownOption(tiresDropdown, v, "Tires"); }
+    public void enterEngineSerial(String v) { sendKeys(engineSerialInput, v, "Engine Serial Field"); }
+    public void enterAccessories(String v) { sendKeys(accessoriesInput, v, "Accessories Field"); }
+
+    // ===================== Commercial =====================
+
+    public void enterPONumber(String v) { sendKeys(poNumberInput, v, "PO Number Field"); }
+    public void enterGSTAmount(String v) { sendKeys(gstAmountInput, v, "GST Amount Field"); }
+    public void enterExRate(String v) { sendKeys(exRateInput, v, "Ex Rate Field"); }
+    public void enterClearingCharges(String v) { sendKeys(clearingChargesInput, v, "Clearing Charges Field"); }
+    public void enterCHACharges(String v) { sendKeys(chaChargesInput, v, "CHA Charges Field"); }
+    public void enterTransportationCharges(String v) { sendKeys(transportationChargesInput, v, "Transportation Charges Field"); }
+    public void selectDispatchPort(String v) { selectDropdownOption(dispatchPortDropdown, v, "Dispatch Port"); }
+    public void selectClearancePort(String v) { selectDropdownOption(clearancePortDropdown, v, "Clearance Port"); }
+    public void enterPeriodOfInsurance(String v) { sendKeys(periodOfInsuranceInput, v, "Period of Insurance Field"); }
+    public void enterTotalLandedCost(String v) { sendKeys(totalLandedCostInput, v, "Total Landed Cost Field"); }
+    public void enterTotalLandedCostIncludingGST(String v) { sendKeys(totalLandedCostIncludingGSTInput, v, "Total Landed Cost (incl. GST) Field"); }
 }

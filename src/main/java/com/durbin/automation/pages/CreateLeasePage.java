@@ -1,12 +1,9 @@
 package com.durbin.automation.pages;
 
-import com.durbin.automation.base.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import com.durbin.automation.base.BasePage;
 
 public class CreateLeasePage extends BasePage {
 
@@ -14,167 +11,89 @@ public class CreateLeasePage extends BasePage {
         super(driver);
     }
 
-    // Create Lease Page Elements
-    @FindBy(xpath = "//h3[contains(text(), 'Create Lease')]")
-    private WebElement createLeaseTitle;
+    // ===================== Menu and list page =====================
+    private final By leasesLogisticsMenu = By.xpath("//span[normalize-space()='Leases & Logistics']");
+    private final By leaseSubMenu = By.xpath("//span[normalize-space()='Lease']");
+    private final By createButton = By.xpath("//button[normalize-space()='Create']");
 
-    @FindBy(xpath = "//input[contains(@id, 'effective_date_field')]")
-    private WebElement effectiveDateInput;
+    // ===================== Create Lease form =====================
+    private final By customerNameField = dropdownByLabel("Customer Name");
+    private final By customerPoNoInput = By.xpath("//input[@placeholder='Customer PO No']");
+    private final By salesPersonField = dropdownByLabel("Sales Person");
+    private final By leaseTypeField = dropdownByLabel("Lease Type");
+    private final By addMachineButton = By.xpath("//button[normalize-space()='Add Machine']");
 
-    @FindBy(xpath = "//input[contains(@id, 'renewal_term_field')]")
-    private WebElement renewalTermInput;
+    // ===================== Helpers =====================
 
-    @FindBy(xpath = "//input[contains(@id, 'rent_increase_date_field')]")
-    private WebElement rentIncreaseDateInput;
+    // Finds the dropdown that comes right after a label
+    private static By dropdownByLabel(String label) {
+    return By.xpath("//*[normalize-space(text())='" + label + "']/following::*[@role='combobox'][1]");
+}
 
-    @FindBy(xpath = "//input[contains(@id, 'renewal_date_field')]")
-    private WebElement renewalDateInput;
+    // ===================== Navigation =====================
 
-    @FindBy(xpath = "//select[contains(@id, 'lease_type_field')]")
-    private WebElement leaseTypeSelect;
-
-    @FindBy(xpath = "//select[contains(@id, 'lease_fulfillment_method_field')]")
-    private WebElement fulfillmentMethodSelect;
-
-    @FindBy(xpath = "//textarea[contains(@id, 'lease_space_description_field')]")
-    private WebElement spaceDescription;
-
-    @FindBy(xpath = "//input[contains(@id, 'additional_rent_field')]")
-    private WebElement additionalRentInput;
-
-    @FindBy(xpath = "//textarea[contains(@id, 'renewal_lease_space_description_field')]")
-    private WebElement renewalSpaceDescription;
-
-    @FindBy(xpath = "//input[contains(@id, 'lease_commencement_date_field')]")
-    private WebElement leaseCommencementDateInput;
-
-    @FindBy(xpath = "//input[contains(@id, 'lease_expiry_date_field')]")
-    private WebElement leaseExpiryDateInput;
-
-    @FindBy(xpath = "//input[contains(@id, 'base_rent_field')]")
-    private WebElement baseRentInput;
-
-    @FindBy(xpath = "//input[contains(@id, 'renewal_rent_field')]")
-    private WebElement renewalRentInput;
-
-    @FindBy(xpath = "//input[contains(@id, 'width_field')]")
-    private WebElement dimensionsWidth;
-
-    @FindBy(xpath = "//input[contains(@id, 'depth_field')]")
-    private WebElement dimensionsDepth;
-
-    @FindBy(xpath = "//input[contains(@id, 'total_area_field')]")
-    private WebElement dimensionsTotalArea;
-
-    @FindBy(xpath = "//input[contains(@id, 'renewal_width_field')]")
-    private WebElement renewalDimensionsWidth;
-
-    @FindBy(xpath = "//input[contains(@id, 'renewal_depth_field')]")
-    private WebElement renewalDimensionsDepth;
-
-    @FindBy(xpath = "//input[contains(@id, 'renewal_total_area_field')]")
-    private WebElement renewalDimensionsTotalArea;
-
-    @FindBy(xpath = "//input[contains(@id, 'rental_rate_rate_field')]")
-    private WebElement rentalRateRate;
-
-    @FindBy(xpath = "//input[contains(@id, 'renewal_rental_rate_rate_field')]")
-    private WebElement renewalRentalRateRate;
-
-    @FindBy(xpath = "//select[contains(@id, 'rental_rate_type_field')]")
-    private WebElement rentalRateType;
-
-    @FindBy(xpath = "//select[contains(@id, 'renewal_rental_rate_type_field')]")
-    private WebElement renewalRentalRateType;
-
-    @FindBy(xpath = "//select[contains(@id, 'rental_rate_per_field')]")
-    private WebElement rentalRatePer;
-
-    @FindBy(xpath = "//select[contains(@id, 'renewal_rental_rate_per_field')]")
-    private WebElement renewalRentalRatePer;
-
-    @FindBy(xpath = "//button[contains(.,'Save') and @type='submit'] | //button[contains(.,'Save') and @id='create-lease-btn']")
-    private WebElement saveButton;
-
-    @FindBy(xpath = "//h3[contains(.,'Success')]")
-    private WebElement successMessage;
-
-    @FindBy(xpath = "//button[contains(.,'Create Lease') and @type='submit'] | //button[contains(.,'Create New Lease')] | //button[contains(@id, 'create_new_lease')]")
-    private WebElement createNewLeaseButton;
-
-    // Methods
-    public boolean isCreateLeasePageDisplayed() {
-        return isElementDisplayed(createLeaseTitle, 10);
+    public void openLeasesMenu() {
+        click(leasesLogisticsMenu, "Leases & Logistics Menu");
     }
 
-    public void fillBasicInformation(String effectiveDate,
-            String renewalTerm,
-            String rentIncreaseDate,
-            String renewalDate,
-            String leaseType,
-            String fulfillmentMethod,
-            String spaceDescription,
-            String additionalRent,
-            String renewalSpaceDescription,
-            String leaseCommencementDate,
-            String leaseExpiryDate,
-            String baseRent,
-            String renewalRent) {
-
-        // Fill basic fields with default values from test data
-        fillInput(effectiveDateInput, effectiveDate, "Effective Date");
-        fillInput(renewalTermInput, renewalTerm, "Renewal Term");
-        fillInput(rentIncreaseDateInput, rentIncreaseDate, "Rent Increase Date");
-        fillInput(renewalDateInput, renewalDate, "Renewal Date");
-        selectDropdownByVisibleText(leaseTypeSelect, leaseType, "Lease Type");
-        selectDropdownByVisibleText(fulfillmentMethodSelect, fulfillmentMethod,
-                "Fulfillment Method");
-        fillInput(spaceDescription, spaceDescription, "Space Description");
-        fillInput(additionalRentInput, additionalRent, "Additional Rent");
-        fillInput(renewalSpaceDescription, renewalSpaceDescription,
-                "Renewal Space Description");
-        fillInput(leaseCommencementDateInput, leaseCommencementDate,
-                "Lease Commencement Date");
-        fillInput(leaseExpiryDateInput, leaseExpiryDate, "Lease Expiry Date");
-        fillInput(baseRentInput, baseRent, "Base Rent");
-        fillInput(renewalRentInput, renewalRent, "Renewal Rent");
+    public void openLeaseSubMenu() {
+        click(leaseSubMenu, "Lease Sub Menu");
     }
 
-    public void fillDimensions(String width,
-            String depth,
-            String totalArea,
-            String renewalWidth,
-            String renewalDepth,
-            String renewalTotalArea) {
-
-        fillInput(dimensionsWidth, width, "Dimensions Width");
-        fillInput(dimensionsDepth, depth, "Dimensions Depth");
-        fillInput(dimensionsTotalArea, totalArea, "Dimensions Total Area");
-        fillInput(renewalDimensionsWidth, renewalWidth, "Renewal Dimensions Width");
-        fillInput(renewalDimensionsDepth, renewalDepth, "Renewal Dimensions Depth");
-        fillInput(renewalDimensionsTotalArea, renewalTotalArea,
-                "Renewal Dimensions Total Area");
+    public void clickCreateButton() {
+        click(createButton, "Create Button");
     }
 
-    public void fillRentalRate(String rate,
-            String renewalRate,
-            String type,
-            String renewalType,
-            String per,
-            String renewalPer) {
+    // ===================== Create Lease form =====================
 
-        fillInput(rentalRateRate, rate, "Rental Rate Rate");
-        fillInput(renewalRentalRateRate, renewalRate, "Renewal Rental Rate Rate");
-        selectDropdownByVisibleText(rentalRateType, type, "Rental Rate Type");
-        selectDropdownByVisibleText(renewalRentalRateType, renewalType,
-                "Renewal Rental Rate Type");
-        selectDropdownByVisibleText(rentalRatePer, per, "Rental Rate Per");
-        selectDropdownByVisibleText(renewalRentalRatePer, renewalPer,
-                "Renewal Rental Rate Per");
+    public void selectCustomerName(String customerName) {
+        typeAndSelectFirstOption(customerNameField, customerName, "Customer Name Field");
     }
 
-    public void clickSave() {
-        clickElement(saveButton, 10, "Save button");
+    public void enterCustomerPoNo(String poNo) {
+        sendKeys(customerPoNoInput, poNo, "Customer PO No Field");
     }
 
-public boolean isLeaseCreated(String expectedLeaseId
+    public void selectSalesPerson(String salesPerson) {
+        typeAndSelectFirstOption(salesPersonField, salesPerson, "Sales Person Field");
+    }
+
+    // leaseType must be exactly "Dry" or "Wet" (the test class checks this)
+    public void selectLeaseType(String leaseType) {
+        click(leaseTypeField, "Lease Type dropdown");
+        click(By.xpath("//*[@role='option'][normalize-space()='" + leaseType + "']"),
+                "Option '" + leaseType + "' in Lease Type");
+    }
+
+    public void clickAddMachine() {
+        click(addMachineButton, "Add Machine Button");
+    }
+
+        // ===================== Machine section =====================
+    private final By machineAssetNoLabel = By.xpath("//label[normalize-space()='Asset No']");
+    private final By assetNoField = dropdownByLabel("Asset No");
+    private final By operatorNoInput = inputByLabel("Operator No.(s)");
+    private final By operatorNameField = dropdownByLabel("Operator Name");
+    private final By machineLocationField = dropdownByLabel("Location");
+    private final By monthlyRentInput = inputByLabel("Monthly Rent");
+    private final By shiftsPerDayInput = inputByLabel("Shifts Per Day");
+    private final By nominalHrsInput = inputByLabel("Nominal Hrs/Shift");
+    private final By workingDaysInput = inputByLabel("Working Days/Month");
+    private final By contractValueInput = inputByLabel("Contract Value");
+
+    // Finds the input that comes right after a label (first machine only)
+    private static By inputByLabel(String label) {
+        return By.xpath("(//label[contains(normalize-space(),'" + label + "')]/following::input[1])[1]");
+    }
+
+
+    public void selectAsset(String v) { typeAndSelectFirstOption(assetNoField, v, "Asset No Field"); }
+    public void enterOperatorNo(String v) { sendKeys(operatorNoInput, v, "Operator No Field"); }
+    public void selectOperatorName(String v) { typeAndSelectFirstOption(operatorNameField, v, "Operator Name Field"); }
+    public void selectMachineLocation(String v) { typeAndSelectFirstOption(machineLocationField, v, "Location Field"); }
+    public void enterMonthlyRent(String v) { sendKeys(monthlyRentInput, v, "Monthly Rent Field"); }
+    public void enterShiftsPerDay(String v) { sendKeys(shiftsPerDayInput, v, "Shifts Per Day Field"); }
+    public void enterNominalHrs(String v) { sendKeys(nominalHrsInput, v, "Nominal Hrs/Shift Field"); }
+    public void enterWorkingDays(String v) { sendKeys(workingDaysInput, v, "Working Days/Month Field"); }
+    public void enterContractValue(String v) { sendKeys(contractValueInput, v, "Contract Value Field"); }
+}

@@ -40,7 +40,7 @@ public class LoginTest extends BaseTest {
         if (!driver.getCurrentUrl().contains("dashboard")) {
             throw new RuntimeException("Login failed - not redirected after login");
         }
-
+ 
         step("Login test completed successfully.");
     }
 }
