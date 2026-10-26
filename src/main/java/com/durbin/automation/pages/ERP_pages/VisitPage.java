@@ -35,6 +35,9 @@ public class VisitPage extends BasePage {
 
     private final By createVisitButton = By.cssSelector("form#visit-basic-form button[type='submit']");
 
+    private final By interactionTypeRoot = By.xpath(
+            "//label[contains(normalize-space(),'Interaction Type')]/following::div[@data-slot='command'][1]");
+
     // ===================== Navigation =====================
 
     public void goToVisitsPage() {
@@ -59,6 +62,11 @@ public class VisitPage extends BasePage {
     public void selectDateRange(String fromDay, String toDay) {
         click(dateRangeTrigger, "Date Range");
         click(dayButton(fromDay), "From day " + fromDay);
+        // if the calendar closed after the first click, open it again for the second
+        // day
+        if (!"true".equals(driver.findElement(dateRangeTrigger).getAttribute("aria-expanded"))) {
+            click(dateRangeTrigger, "Date Range (opened again)");
+        }
         click(dayButton(toDay), "To day " + toDay);
         // close the calendar popover so it cannot cover the next field
         driver.switchTo().activeElement().sendKeys(org.openqa.selenium.Keys.ESCAPE);
@@ -71,11 +79,20 @@ public class VisitPage extends BasePage {
     }
 
     public void selectInteractionType(String type) {
+        // Physical is already selected by default, so only type something that is not
+        // selected yet
+        String selected = driver.findElement(interactionTypeRoot).getText();
+        if (selected.toLowerCase().contains(type.trim().toLowerCase())) {
+            step("Interaction Type '" + type + "' is already selected, so nothing to do");
+            return;
+        }
         typeAndSelectFirstOption(interactionTypeInput, type, "Interaction Type");
+        closeList();
     }
 
     public void selectCustomer(String customer) {
         typeAndSelectFirstOption(customerInput, customer, "Customer");
+        closeList();
     }
 
     public void selectFirstAddress() {
@@ -84,9 +101,16 @@ public class VisitPage extends BasePage {
 
     public void selectVisitedWith(String employee) {
         typeAndSelectFirstOption(visitedWithInput, employee, "Visited With");
+        closeList();
     }
 
     public void clickCreateVisit() {
         click(createVisitButton, "Create Visit Button");
+    }
+
+    // These lists stay open after a choice. Clicking the form title closes them,
+    // like clicking outside.
+    private void closeList() {
+        click(formTitle, "Form title (to close the open list)");
     }
 }
